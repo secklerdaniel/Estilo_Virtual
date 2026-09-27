@@ -1,13 +1,12 @@
 // Chama a função /api/generate (api/generate.ts), que fala com a OpenAI no servidor.
+import { api } from './auth';
+
 const generate = async (action: string, images: string[], instruction?: string): Promise<string> => {
-  const res = await fetch('/api/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, images, instruction }),
-  });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok || !json.image) throw new Error(json.error || 'Não foi possível gerar a imagem. Tente novamente.');
-  return json.image;
+  try {
+    return (await api<{ image: string }>('generate', { action, images, instruction })).image;
+  } finally {
+    window.dispatchEvent(new Event('conta-mudou')); // atualiza o saldo de créditos no topo
+  }
 };
 
 export const generateFlatLay = (images: { base64: string }[]) => generate('flatLay', images.map(i => i.base64));

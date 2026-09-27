@@ -1,5 +1,7 @@
 // Função de servidor (Vercel /api/generate; no dev, servida pelo vite.config.ts).
 // A chave da OpenAI e os prompts ficam aqui: o navegador só manda a ação e as fotos.
+// Exige login e gasta 1 crédito por imagem (devolvido se a IA falhar).
+import { erro, getUser, sql } from './_lib';
 
 const MODEL = 'gpt-image-2.5-sunburst';
 
@@ -24,11 +26,11 @@ const SIZE: Record<Action, string> = { flatLay: '1024x1024', baseModel: '1024x15
 const mimeOf = (b64: string) =>
   b64.startsWith('/9j/') ? 'image/jpeg' : b64.startsWith('UklGR') ? 'image/webp' : 'image/png';
 
-const erro = (status: number, message: string) => Response.json({ error: message }, { status });
-
 export async function POST(req: Request): Promise<Response> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return erro(500, 'OPENAI_API_KEY não configurada no servidor.');
+  const user = await getUser(req);
+  if (!user) return erro(401, 'Entre na sua conta para gerar imagens.');
 
   const { action, images, instruction } = await req.json().catch(() => ({}));
   if (!(action in PROMPTS)) return erro(400, 'Ação inválida.');
@@ -36,6 +38,9 @@ export async function POST(req: Request): Promise<Response> {
     return erro(400, 'Envie de 1 a 10 imagens.');
   if (action === 'pose' && (typeof instruction !== 'string' || !instruction || instruction.length > 200))
     return erro(400, 'Instrução de pose inválida.');
+
+  const [credito] = await sql`select restantes from consumir_credito(${user.id})`;
+  if (!credito) return erro(402, 'Seus créditos acabaram. Escolha um plano para continuar gerando.');
 
   const form = new FormData();
   form.append('model', MODEL);
@@ -54,12 +59,15 @@ export async function POST(req: Request): Promise<Response> {
     headers: { Authorization: `Bearer ${key}` },
     body: form,
   });
-  const json = await res.json();
-  if (!res.ok) {
-    console.error('OpenAI:', res.status, json.error?.message);
-    return erro(502, 'A IA não conseguiu gerar a imagem. Tente novamente.');
-  }
+  const json = await res.json().catch(() => ({}));
   const image = json.data?.[0]?.b64_json;
-  if (!image) return erro(502, 'Nenhuma imagem foi gerada. A resposta pode ter sido bloqueada.');
-  return Response.json({ image });
+  if (!res.ok || !image) {
+    console.error('OpenAI:', res.status, json.error?.message);
+    await sql`select devolver_credito(${user.id})`;
+    const bloqueada = json.error?.code === 'moderation_blocked' || /safety system/.test(json.error?.message ?? '');
+    return erro(502, bloqueada
+      ? 'A IA recusou esta imagem pelas regras de segurança. Tente outra foto ou outra peça. Seu crédito foi devolvido.'
+      : 'A IA não conseguiu gerar a imagem. Tente novamente. Seu crédito foi devolvido.');
+  }
+  return Response.json({ image, restantes: credito.restantes });
 }

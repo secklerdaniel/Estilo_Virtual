@@ -1,5 +1,5 @@
 
-export type Page = 'home' | 'flatLay' | 'tryOn';
+export type Page = 'home' | 'flatLay' | 'tryOn' | 'login';
 
 export type ClothingCategory = 'top' | 'bottom' | 'accessory';
 

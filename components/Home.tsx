@@ -4,14 +4,11 @@ import { ClockIcon, DollarSignIcon, CheckCircleIcon, QuoteIcon, SparklesIcon } f
 
 interface HomeProps {
   navigateTo: (page: Page) => void;
+  onAssinar: (plano: string) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ navigateTo }) => {
-  const handlePlanClick = (planName: string) => {
-    const message = encodeURIComponent(`Olá! Tenho interesse no Plano ${planName} do Estilo Virtual.`);
-    const whatsappUrl = `https://wa.me/5554981432889?text=${message}`;
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-  };
+const Home: React.FC<HomeProps> = ({ navigateTo, onAssinar }) => {
+  const handlePlanClick = (planName: string) => onAssinar(planName.toLowerCase());
 
   return (
     <div className="bg-white">
@@ -125,7 +122,7 @@ const Home: React.FC<HomeProps> = ({ navigateTo }) => {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 md:py-28">
+      <section id="planos" className="py-20 md:py-28 scroll-mt-20">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Escolha o plano ideal para sua loja</h2>
@@ -180,7 +177,7 @@ const Home: React.FC<HomeProps> = ({ navigateTo }) => {
                 <span className="text-lg font-medium text-gray-500">/mês</span>
               </div>
               <ul className="space-y-4 text-gray-600 flex-grow">
-                <li className="flex items-center"><CheckCircleIcon className="text-indigo-500 w-5 h-5 mr-3" /> <span>Gerações <span className="font-bold">ilimitadas</span></span></li>
+                <li className="flex items-center"><CheckCircleIcon className="text-indigo-500 w-5 h-5 mr-3" /> <span>Gerações <span className="font-bold">ilimitadas</span> <span className="text-gray-500 text-sm">(uso justo)</span></span></li>
                  <li className="flex items-center"><CheckCircleIcon className="text-indigo-500 w-5 h-5 mr-3" /> <span>Todos os recursos do Profissional</span></li>
                 <li className="flex items-center"><CheckCircleIcon className="text-indigo-500 w-5 h-5 mr-3" /> <span>Suporte prioritário</span></li>
                 <li className="flex items-center"><CheckCircleIcon className="text-indigo-500 w-5 h-5 mr-3" /> <span>Acesso a novas funcionalidades</span></li>
