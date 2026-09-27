@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ClothingItem } from '../types';
-import { generateTryOn, generateBaseModel, changePose } from '../services/geminiService';
+import { generateTryOn, generateBaseModel, changePose } from '../services/imageService';
 import { CameraIcon, UploadIcon, SparklesIcon, MagicWandIcon, DownloadIcon } from './icons/Icons';
 
 interface VirtualTryOnProps {

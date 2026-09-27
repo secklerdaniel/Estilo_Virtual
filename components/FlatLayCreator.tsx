@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { UploadedImage } from '../types';
-import { generateFlatLay } from '../services/geminiService';
+import { generateFlatLay } from '../services/imageService';
 import { UploadIcon, TrashIcon, SparklesIcon, DownloadIcon, TryOnIcon } from './icons/Icons';
 
 const MAX_IMAGES = 5;

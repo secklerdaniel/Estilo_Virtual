@@ -45,7 +45,7 @@ const Home: React.FC<HomeProps> = ({ navigateTo }) => {
       <section
         className="relative w-full py-20 md:py-32 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: "url('https://djzrpkcmmfyapvzupejc.supabase.co/storage/v1/object/public/roupas/modelos-estilo-virtual3.png')",
+          backgroundImage: "url('/img/hero-modelos.webp')",
         }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-60"></div>
@@ -93,7 +93,7 @@ const Home: React.FC<HomeProps> = ({ navigateTo }) => {
             {/* Step 1 */}
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-6 w-full">
-                <img src="https://djzrpkcmmfyapvzupejc.supabase.co/storage/v1/object/public/roupas/Captura%20de%20tela%202025-10-29%20170551.png" alt="Passo 1: Criar o look" className="rounded-lg shadow-lg w-full h-auto aspect-square object-cover"/>
+                <img src="/img/passo1-flat-lay.webp" alt="Passo 1: Criar o look" className="rounded-lg shadow-lg w-full h-auto aspect-square object-cover"/>
                 <div className="absolute -top-4 -left-4 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-2xl font-bold border-4 border-gray-50">1</div>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Crie seu Look</h3>
@@ -103,7 +103,7 @@ const Home: React.FC<HomeProps> = ({ navigateTo }) => {
             {/* Step 2 */}
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-6 w-full">
-                <img src="https://djzrpkcmmfyapvzupejc.supabase.co/storage/v1/object/public/roupas/Captura%20de%20tela%202025-10-29%20181108.png" alt="Passo 2: Criar o modelo base" className="rounded-lg shadow-lg w-full h-auto aspect-[3/4] object-cover"/>
+                <img src="/img/passo2-modelo-base.webp" alt="Passo 2: Criar o modelo base" className="rounded-lg shadow-lg w-full h-auto aspect-[3/4] object-cover"/>
                 <div className="absolute -top-4 -left-4 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-2xl font-bold border-4 border-gray-50">2</div>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Envie sua Foto</h3>
@@ -113,7 +113,7 @@ const Home: React.FC<HomeProps> = ({ navigateTo }) => {
             {/* Step 3 */}
             <div className="flex flex-col items-center text-center">
               <div className="relative mb-6 w-full">
-                <img src="https://djzrpkcmmfyapvzupejc.supabase.co/storage/v1/object/public/roupas/provador-virtual-look%20(25).png" alt="Passo 3: Experimentar o look" className="rounded-lg shadow-lg w-full h-auto aspect-[3/4] object-cover"/>
+                <img src="/img/passo3-look-final.webp" alt="Passo 3: Experimentar o look" className="rounded-lg shadow-lg w-full h-auto aspect-[3/4] object-cover"/>
                 <div className="absolute -top-4 -left-4 w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-2xl font-bold border-4 border-gray-50">3</div>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Experimente e Venda</h3>
