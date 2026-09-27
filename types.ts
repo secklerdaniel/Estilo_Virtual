@@ -1,5 +1,5 @@
 
-export type Page = 'home' | 'flatLay' | 'tryOn' | 'login';
+export type Page = 'home' | 'flatLay' | 'tryOn' | 'login' | 'galeria';
 
 export type ClothingCategory = 'top' | 'bottom' | 'accessory';
 
@@ -10,7 +10,7 @@ export interface UploadedImage {
 }
 
 export interface ClothingItem {
-  id: number;
+  id: string;
   name: string;
   imageUrl: string;
 }

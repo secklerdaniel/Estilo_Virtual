@@ -6,16 +6,16 @@ import Home from './components/Home';
 import FlatLayCreator from './components/FlatLayCreator';
 import VirtualTryOn from './components/VirtualTryOn';
 import Login from './components/Login';
-import { api, authClient, concluirLoginSocial, Conta } from './services/auth';
-
-const CHAVE_FLAT_LAYS = 'estilo-virtual:flat-lays';
+import Galeria from './components/Galeria';
+import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
-  // Guardadas no navegador: sobrevivem ao recarregar e à ida e volta do pagamento no Stripe.
-  const [savedFlatLays, setSavedFlatLays] = useState<ClothingItem[]>(() => {
-    try { return JSON.parse(localStorage.getItem(CHAVE_FLAT_LAYS) ?? '[]'); } catch { return []; }
-  });
+  // Imagens da conta, guardadas no R2: aparecem em qualquer aparelho em que o lojista entrar.
+  const [imagens, setImagens] = useState<Imagem[]>([]);
+  const savedFlatLays: ClothingItem[] = imagens
+    .filter(i => i.tipo === 'flatLay')
+    .map((i, n, lista) => ({ id: i.id, name: `Flat Lay #${lista.length - n}`, imageUrl: i.url }));
   const [baseModelImage, setBaseModelImage] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [conta, setConta] = useState<Conta | null>(null);
@@ -28,6 +28,7 @@ const App: React.FC = () => {
     const { data } = await authClient.getSession();
     setEmail(data?.user?.email ?? null);
     setConta(data?.user ? await api<Conta>('me').catch(() => null) : null);
+    setImagens(data?.user ? (await api<{ imagens: Imagem[] }>('imagens').catch(() => ({ imagens: [] }))).imagens : []);
     setCarregando(false);
   }, []);
 
@@ -77,25 +78,12 @@ const App: React.FC = () => {
     await authClient.signOut();
     setEmail(null);
     setConta(null);
+    setImagens([]);
     setCurrentPage('home');
   }, []);
 
-  useEffect(() => {
-    // ponytail: localStorage (~5 MB, umas 10-20 imagens); se lotar, descarta as mais antigas. Mais que isso pede IndexedDB ou banco.
-    for (let n = savedFlatLays.length; n >= 0; n--) {
-      try { return localStorage.setItem(CHAVE_FLAT_LAYS, JSON.stringify(savedFlatLays.slice(0, n))); } catch { /* cheio: tenta com menos */ }
-    }
-  }, [savedFlatLays]);
-
-  const addSavedFlatLay = useCallback((base64Image: string) => {
-    const newFlatLay: ClothingItem = {
-      id: Date.now(),
-      name: `Meu Flat Lay #${savedFlatLays.length + 1}`,
-      // O imageUrl para o provador já é o data URL completo
-      imageUrl: `data:image/${base64Image.startsWith('/9j/') ? 'jpeg' : 'png'};base64,${base64Image}`,
-    };
-    setSavedFlatLays(prev => [newFlatLay, ...prev]);
-  }, [savedFlatLays]);
+  // O flat lay já foi guardado ao ser gerado; aqui só recarrega a lista do provador.
+  const addSavedFlatLay = useCallback(() => { atualizarConta(); }, [atualizarConta]);
 
   const renderPage = () => {
     // As ferramentas gastam créditos: sem login, mostra o cadastro.
@@ -111,6 +99,8 @@ const App: React.FC = () => {
                   baseModel={baseModelImage}
                   setBaseModel={setBaseModelImage}
                 />;
+      case 'galeria':
+        return email ? <Galeria imagens={imagens} onMudou={atualizarConta} /> : <Login onEntrou={entrou} cadastroInicial={false} />;
       case 'home':
       default:
         return <Home navigateTo={navigateTo} onAssinar={assinar} />;

@@ -45,6 +45,13 @@ const Header: React.FC<HeaderProps> = ({ navigateTo, email, conta, onSair, onAss
               Provador Virtual
             </button>
           </li>
+          {email && (
+            <li>
+              <button onClick={() => navigateTo('galeria')} className="text-gray-600 hover:text-indigo-600 font-medium transition-colors">
+                Minhas imagens
+              </button>
+            </li>
+          )}
           {email ? (
             <li className="flex items-center gap-3 text-sm">
               {conta && (

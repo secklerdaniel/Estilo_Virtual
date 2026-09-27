@@ -40,3 +40,14 @@ language sql as $$
      set creditos_usados = greatest(0, creditos_usados - 1), updated_at = now()
    where user_id = p_user_id;
 $$;
+
+-- Imagens geradas: o arquivo fica no Cloudflare R2 (bucket estilo-virtual,
+-- privado, chave usuarios/<user_id>/<id>.jpg); aqui só o índice por dono.
+create table if not exists imagens (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    text not null,
+  tipo       text not null check (tipo in ('flatLay', 'baseModel', 'tryOn', 'pose')),
+  chave      text not null unique,
+  created_at timestamptz not null default now()
+);
+create index if not exists imagens_user_created_idx on imagens (user_id, created_at desc);

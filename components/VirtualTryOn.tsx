@@ -135,7 +135,10 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
     setGeneratedImage(null);
 
     try {
-      const clothingBase64 = await getBase64FromImageUrl(selectedClothing.imageUrl);
+      // Peça guardada na conta: o servidor busca no R2 pelo id (sem baixar no navegador).
+      const clothingBase64 = selectedClothing.imageUrl.startsWith('data:')
+        ? await getBase64FromImageUrl(selectedClothing.imageUrl)
+        : `imagem:${selectedClothing.id}`;
       const resultBase64 = await generateTryOn(baseModel, clothingBase64);
       setGeneratedImage(resultBase64);
     } catch (err) {

@@ -16,11 +16,11 @@ export async function concluirLoginSocial() {
 }
 
 /** fetch para /api com o JWT do usuário logado. Erro vira Error com a mensagem do servidor. */
-export async function api<T = any>(path: string, body?: unknown): Promise<T> {
+export async function api<T = any>(path: string, body?: unknown, method?: string): Promise<T> {
   // Direto no proxy: authClient.token() às vezes responde do cache sem JWT.
   const { token } = await fetch('/api/auth/token').then(r => (r.ok ? r.json() : {})).catch(() => ({})) as { token?: string };
   const res = await fetch(`/api/${path}`, {
-    method: body === undefined ? 'GET' : 'POST',
+    method: method ?? (body === undefined ? 'GET' : 'POST'),
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -40,3 +40,5 @@ export type Conta = {
   periodoFim?: string;
   assinante: boolean;
 };
+
+export type Imagem = { id: string; tipo: 'flatLay' | 'baseModel' | 'tryOn' | 'pose'; criadaEm: string; url: string };
