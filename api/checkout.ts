@@ -33,6 +33,8 @@ async function checkout(req: Request): Promise<Response> {
     client_reference_id: user.id,
     ...(a?.stripe_customer_id ? { customer: a.stripe_customer_id } : { customer_email: user.email || undefined }),
     subscription_data: { metadata: { user_id: user.id } },
+    allow_promotion_codes: true, // ex.: ESTILO100 (sócios, 100% para sempre)
+    payment_method_collection: 'if_required', // com 100% de desconto não pede cartão
     success_url: `${base}/?checkout=sucesso`,
     cancel_url: `${base}/?checkout=cancelado`,
   });
