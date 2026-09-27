@@ -8,9 +8,14 @@ import VirtualTryOn from './components/VirtualTryOn';
 import Login from './components/Login';
 import { api, authClient, concluirLoginSocial, Conta } from './services/auth';
 
+const CHAVE_FLAT_LAYS = 'estilo-virtual:flat-lays';
+
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [savedFlatLays, setSavedFlatLays] = useState<ClothingItem[]>([]);
+  // Guardadas no navegador: sobrevivem ao recarregar e à ida e volta do pagamento no Stripe.
+  const [savedFlatLays, setSavedFlatLays] = useState<ClothingItem[]>(() => {
+    try { return JSON.parse(localStorage.getItem(CHAVE_FLAT_LAYS) ?? '[]'); } catch { return []; }
+  });
   const [baseModelImage, setBaseModelImage] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [conta, setConta] = useState<Conta | null>(null);
@@ -75,12 +80,19 @@ const App: React.FC = () => {
     setCurrentPage('home');
   }, []);
 
+  useEffect(() => {
+    // ponytail: localStorage (~5 MB, umas 10-20 imagens); se lotar, descarta as mais antigas. Mais que isso pede IndexedDB ou banco.
+    for (let n = savedFlatLays.length; n >= 0; n--) {
+      try { return localStorage.setItem(CHAVE_FLAT_LAYS, JSON.stringify(savedFlatLays.slice(0, n))); } catch { /* cheio: tenta com menos */ }
+    }
+  }, [savedFlatLays]);
+
   const addSavedFlatLay = useCallback((base64Image: string) => {
     const newFlatLay: ClothingItem = {
       id: Date.now(),
       name: `Meu Flat Lay #${savedFlatLays.length + 1}`,
       // O imageUrl para o provador já é o data URL completo
-      imageUrl: `data:image/png;base64,${base64Image}`,
+      imageUrl: `data:image/${base64Image.startsWith('/9j/') ? 'jpeg' : 'png'};base64,${base64Image}`,
     };
     setSavedFlatLays(prev => [newFlatLay, ...prev]);
   }, [savedFlatLays]);

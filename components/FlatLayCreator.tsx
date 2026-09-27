@@ -38,7 +38,7 @@ const FlatLayCreator: React.FC<FlatLayCreatorProps> = ({ onSaveForTryOn }) => {
         reader.onload = (e) => {
           if (typeof e.target?.result === 'string') {
             const base64 = e.target.result.split(',')[1];
-            setImages(prev => [...prev, { name: file.name, base64 }]);
+            setImages(prev => [...prev, { name: file.name, base64, preview: e.target!.result as string }]);
           }
         };
         reader.readAsDataURL(file);
@@ -110,16 +110,22 @@ const FlatLayCreator: React.FC<FlatLayCreatorProps> = ({ onSaveForTryOn }) => {
           </div>
 
           {images.length > 0 && (
-            <div className="space-y-3 mb-6">
-              <h3 className="font-semibold">Imagens Carregadas:</h3>
-              {images.map((image, index) => (
-                <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
-                  <span className="text-sm truncate pr-2">{image.name}</span>
-                  <button onClick={() => removeImage(index)} className="text-red-500 hover:text-red-700">
-                    <TrashIcon />
-                  </button>
-                </div>
-              ))}
+            <div className="mb-6">
+              <h3 className="font-semibold mb-3">Imagens Carregadas:</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {images.map((image, index) => (
+                  <div key={index} className="relative aspect-square bg-gray-100 rounded-md overflow-hidden">
+                    <img src={image.preview} alt={image.name} title={image.name} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-white/90 rounded-full p-1 text-red-500 hover:text-red-700 shadow"
+                      aria-label={`Remover ${image.name}`}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
