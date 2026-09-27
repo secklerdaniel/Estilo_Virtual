@@ -2,7 +2,7 @@
 // Stripe > Developers > Webhooks: https://SEU-DOMINIO/api/stripe-webhook
 // Eventos: customer.subscription.created, customer.subscription.updated, customer.subscription.deleted
 import type Stripe from 'stripe';
-import { erro, getStripe, PLANOS, sql, type Plano } from './_lib';
+import { erro, getStripe, PLANOS, sql, type Plano } from './_lib.js';
 
 const STATUS: Record<string, string> = {
   active: 'ativa', trialing: 'ativa',

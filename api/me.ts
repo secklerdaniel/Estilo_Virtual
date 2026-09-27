@@ -1,5 +1,5 @@
 // Plano e créditos do usuário logado.
-import { CREDITOS_GRATIS, erro, getUser, sql } from './_lib';
+import { CREDITOS_GRATIS, erro, getUser, sql } from './_lib.js';
 
 export async function GET(req: Request): Promise<Response> {
   const user = await getUser(req);

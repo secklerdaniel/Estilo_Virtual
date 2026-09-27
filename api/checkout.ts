@@ -1,6 +1,6 @@
 // Abre o Checkout do Stripe para assinar um plano mensal.
 // Quem já assina é mandado ao Portal do Cliente, onde troca de plano ou cancela.
-import { appUrl, erro, getStripe, getUser, PLANOS, sql, type Plano } from './_lib';
+import { appUrl, erro, getStripe, getUser, PLANOS, sql, type Plano } from './_lib.js';
 
 export async function POST(req: Request): Promise<Response> {
   try {

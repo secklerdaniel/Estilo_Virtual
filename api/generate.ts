@@ -1,7 +1,7 @@
 // Função de servidor (Vercel /api/generate; no dev, servida pelo vite.config.ts).
 // A chave da OpenAI e os prompts ficam aqui: o navegador só manda a ação e as fotos.
 // Exige login e gasta 1 crédito por imagem (devolvido se a IA falhar).
-import { erro, getUser, sql } from './_lib';
+import { erro, getUser, sql } from './_lib.js';
 
 const MODEL = 'gpt-image-2.5-sunburst';
 
