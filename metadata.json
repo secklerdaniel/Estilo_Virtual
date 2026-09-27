@@ -1,0 +1,8 @@
+{
+  "name": "Estilo Virtual",
+  "description": "Uma loja de moda virtual que oferece um criador de 'flat lay' para lojistas e um provador virtual para clientes, tudo com o poder da IA.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
