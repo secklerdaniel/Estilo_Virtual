@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ClothingItem } from '../types';
 import { generateTryOn, generateBaseModel, changePose } from '../services/imageService';
+import { reduzirFoto } from '../services/foto';
 import { CameraIcon, UploadIcon, SparklesIcon, MagicWandIcon, DownloadIcon } from './icons/Icons';
 
 interface VirtualTryOnProps {
@@ -58,33 +59,25 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
 
   const capturePhoto = () => {
     if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const context = canvas.getContext('2d');
-      if (context) {
-        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg');
-        setOriginalUserImage(dataUrl.split(',')[1]);
+      reduzirFoto(videoRef.current).then(({ base64 }) => {
+        setOriginalUserImage(base64);
         setGeneratedImage(null);
         stopCamera();
-      }
+      });
     }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (typeof e.target?.result === 'string') {
+      reduzirFoto(file)
+        .then(({ base64 }) => {
           stopCamera();
-          setOriginalUserImage(e.target.result.split(',')[1]);
+          setOriginalUserImage(base64);
           setBaseModel(null); // Clear existing model
           setGeneratedImage(null);
-        }
-      };
-      reader.readAsDataURL(file);
+        })
+        .catch(() => setError('Não foi possível ler esta foto. Use uma foto JPG ou PNG.'));
     }
   };
 
@@ -220,7 +213,7 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
                 ) : (
                     <button onClick={startCamera} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"><CameraIcon className="w-5 h-5 mr-2"/>{baseModel ? 'Usar Outra Foto (Câmera)' : 'Ligar Câmera'}</button>
                 )}
-                <input type="file" id="upload-photo" className="hidden" accept="image/jpeg, image/png" onChange={handleFileUpload} />
+                <input type="file" id="upload-photo" className="hidden" accept="image/*" onChange={handleFileUpload} />
                 <label htmlFor="upload-photo" className="w-full bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer flex items-center justify-center"><UploadIcon className="w-5 h-5 mr-2"/>{baseModel ? 'Usar Outra Foto (Arquivo)' : 'Enviar Foto'}</label>
                 
                 {originalUserImage && !baseModel && (

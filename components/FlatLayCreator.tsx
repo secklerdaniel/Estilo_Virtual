@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { UploadedImage } from '../types';
+import { reduzirFoto } from '../services/foto';
 import { generateFlatLay } from '../services/imageService';
 import { UploadIcon, TrashIcon, SparklesIcon, DownloadIcon, TryOnIcon } from './icons/Icons';
 
@@ -34,14 +35,10 @@ const FlatLayCreator: React.FC<FlatLayCreatorProps> = ({ onSaveForTryOn }) => {
       setError(null);
       
       files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (typeof e.target?.result === 'string') {
-            const base64 = e.target.result.split(',')[1];
-            setImages(prev => [...prev, { name: file.name, base64, preview: e.target!.result as string }]);
-          }
-        };
-        reader.readAsDataURL(file);
+        // 1280 px: até 5 peças no mesmo pedido cabem folgado no limite da Vercel.
+        reduzirFoto(file, 1280)
+          .then(({ base64, dataUrl }) => setImages(prev => [...prev, { name: file.name, base64, preview: dataUrl }]))
+          .catch(() => setError(`Não foi possível ler ${file.name}. Use uma foto JPG ou PNG.`));
       });
     }
   };
@@ -94,7 +91,7 @@ const FlatLayCreator: React.FC<FlatLayCreatorProps> = ({ onSaveForTryOn }) => {
             <input 
               type="file" 
               multiple 
-              accept="image/png, image/jpeg"
+              accept="image/*"
               onChange={handleFileChange}
               className="hidden"
               id="file-upload"
