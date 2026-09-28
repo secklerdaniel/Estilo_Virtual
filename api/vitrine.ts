@@ -57,7 +57,7 @@ export async function POST(req: Request): Promise<Response> {
     images = [modelo, pecaB64];
   } else return erro(400, 'Ação inválida.');
 
-  const r = await gerarComCredito(loja.user_id, action, images);
+  const r = await gerarComCredito(loja.user_id, action, images, undefined, 'provador');
   if (r instanceof Response) {
     // Crédito do lojista acabou: a cliente vê uma mensagem neutra.
     return r.status === 402 ? erro(503, 'O provador desta loja está indisponível no momento.') : r;

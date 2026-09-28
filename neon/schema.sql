@@ -78,3 +78,23 @@ create table if not exists provas_publicas (
 );
 create index if not exists provas_publicas_loja_idx on provas_publicas (loja_user_id, created_at desc);
 create index if not exists provas_publicas_ip_idx on provas_publicas (ip_hash, created_at desc);
+
+-- Histórico de créditos gastos (painel de uso). Não some quando o lojista apaga a imagem.
+create table if not exists uso_creditos (
+  id         bigserial primary key,
+  user_id    text not null,
+  origem     text not null check (origem in ('app', 'provador')),
+  tipo       text not null check (tipo in ('flatLay', 'baseModel', 'tryOn', 'pose')),
+  created_at timestamptz not null default now()
+);
+create index if not exists uso_creditos_user_idx on uso_creditos (user_id, created_at desc);
+
+-- Biblioteca de peças: a foto de cada peça sobe uma vez (R2: usuarios/<id>/pecas/<peca>.jpg).
+create table if not exists pecas (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    text not null,
+  nome       text not null check (length(nome) between 1 and 80),
+  chave      text not null unique,
+  created_at timestamptz not null default now()
+);
+create index if not exists pecas_user_idx on pecas (user_id, created_at desc);

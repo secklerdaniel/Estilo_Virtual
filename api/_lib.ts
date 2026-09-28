@@ -54,6 +54,7 @@ const bucket = () => process.env.R2_BUCKET_NAME || 'estilo-virtual';
 
 const put = (Key: string, Body: Buffer) =>
   r2.send(new PutObjectCommand({ Bucket: bucket(), Key, Body, ContentType: 'image/jpeg' }));
+export const salvarArquivo = put;
 
 /** Chave da versão com marca d'água: <id>-marca.jpg ao lado da limpa. */
 export const chaveMarca = (chave: string) => chave.replace(/\.jpg$/, '-marca.jpg');
@@ -104,4 +105,10 @@ export async function lerImagem(userId: string, id: string): Promise<string | nu
   const [l] = await sql`select chave from imagens where id = ${id}::uuid and user_id = ${userId}`.catch(() => []);
   if (!l) return null;
   return (await lerArquivo(l.chave)).toString('base64');
+}
+
+/** Base64 de uma peça da biblioteca, se for do usuário (o flat lay manda "peca:<id>"). */
+export async function lerPeca(userId: string, id: string): Promise<string | null> {
+  const [l] = await sql`select chave from pecas where id = ${id}::uuid and user_id = ${userId}`.catch(() => []);
+  return l ? (await lerArquivo(l.chave)).toString('base64') : null;
 }

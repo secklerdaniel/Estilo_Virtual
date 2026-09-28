@@ -48,7 +48,7 @@ const mimeOf = (b64: string) =>
  * Se a IA falhar, o crédito volta.
  */
 export async function gerarComCredito(
-  dono: string, action: Action, images: string[], instruction?: string,
+  dono: string, action: Action, images: string[], instruction?: string, origem: 'app' | 'provador' = 'app',
 ): Promise<{ image: string; restantes: number } | Response> {
   const key = process.env.OPENAI_API_KEY;
   if (!key) return erro(500, 'OPENAI_API_KEY não configurada no servidor.');
@@ -83,5 +83,7 @@ export async function gerarComCredito(
       ? 'A IA recusou esta imagem pelas regras de segurança. Tente outra foto ou outra peça. O crédito foi devolvido.'
       : 'A IA não conseguiu gerar a imagem. Tente novamente. O crédito foi devolvido.');
   }
+  // Histórico para o painel de uso (não some quando o lojista apaga a imagem).
+  await sql`insert into uso_creditos (user_id, origem, tipo) values (${dono}, ${origem}, ${action})`.catch(() => {});
   return { image, restantes: credito.restantes };
 }

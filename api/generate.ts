@@ -1,7 +1,7 @@
 // Função de servidor (Vercel /api/generate; no dev, servida pelo vite.config.ts).
 // O navegador só manda a ação e as fotos; exige login e gasta 1 crédito por imagem.
 import { acaoValida, gerarComCredito } from './_gerar.js';
-import { erro, getUser, lerImagem, marcar, precisaMarca, salvarImagem } from './_lib.js';
+import { erro, getUser, lerImagem, lerPeca, marcar, precisaMarca, salvarImagem } from './_lib.js';
 
 export async function POST(req: Request): Promise<Response> {
   const user = await getUser(req);
@@ -14,11 +14,13 @@ export async function POST(req: Request): Promise<Response> {
   if (action === 'pose' && (typeof instruction !== 'string' || !instruction || instruction.length > 200))
     return erro(400, 'Instrução de pose inválida.');
 
-  // "imagem:<id>" = imagem já guardada na conta (ex.: flat lay escolhido no provador).
+  // Referências a arquivos já guardados na conta, lidos no servidor:
+  // "imagem:<id>" = imagem gerada (ex.: flat lay no provador); "peca:<id>" = peça da biblioteca.
   for (let i = 0; i < images.length; i++) {
-    if (!images[i].startsWith('imagem:')) continue;
-    const b64 = await lerImagem(user.id, images[i].slice(7));
-    if (!b64) return erro(404, 'Imagem salva não encontrada.');
+    const [tipo, id] = images[i].split(':');
+    if (!id || (tipo !== 'imagem' && tipo !== 'peca')) continue;
+    const b64 = tipo === 'imagem' ? await lerImagem(user.id, id) : await lerPeca(user.id, id);
+    if (!b64) return erro(404, tipo === 'imagem' ? 'Imagem salva não encontrada.' : 'Peça não encontrada na biblioteca.');
     images[i] = b64;
   }
 

@@ -15,7 +15,8 @@ const generate = async (action: string, images: string[], instruction?: string):
   }
 };
 
-export const generateFlatLay = (images: { base64: string }[]) => generate('flatLay', images.map(i => i.base64));
+// Cada item é base64 ou "peca:<id>" (peça da biblioteca, lida no servidor).
+export const generateFlatLay = (images: string[]) => generate('flatLay', images);
 export const generateBaseModel = (userImageBase64: string) => generate('baseModel', [userImageBase64]);
 export const generateTryOn = (modelo: Gerada, peca: string) => generate('tryOn', [ref(modelo), peca]);
 export const changePose = (imagem: Gerada, poseInstruction: string) => generate('pose', [ref(imagem)], poseInstruction);

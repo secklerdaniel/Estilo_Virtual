@@ -13,7 +13,9 @@ import { Termos, Privacidade } from './components/Legal';
 import ContaPagina from './components/Conta';
 import ProvadorPublico from './components/ProvadorPublico';
 import Fitness from './components/Fitness';
-import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
+import Pecas from './components/Pecas';
+import Painel from './components/Painel';
+import { api, authClient, concluirLoginSocial, Conta, Imagem, Peca } from './services/auth';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>(paginaDaUrl);
@@ -22,6 +24,11 @@ const App: React.FC = () => {
   const savedFlatLays: ClothingItem[] = imagens
     .filter(i => i.tipo === 'flatLay')
     .map((i, n, lista) => ({ id: i.id, name: `Flat Lay #${lista.length - n}`, imageUrl: i.url }));
+  // Biblioteca de peças: carregada à parte (não muda a cada geração, e pode ser grande).
+  const [pecas, setPecas] = useState<Peca[]>([]);
+  const carregarPecas = useCallback(async () => {
+    setPecas((await api<{ pecas: Peca[] }>('pecas').catch(() => ({ pecas: [] }))).pecas);
+  }, []);
   const [baseModelImage, setBaseModelImage] = useState<Gerada | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [conta, setConta] = useState<Conta | null>(null);
@@ -36,10 +43,11 @@ const App: React.FC = () => {
     setConta(data?.user ? await api<Conta>('me').catch(() => null) : null);
     setImagens(data?.user ? (await api<{ imagens: Imagem[] }>('imagens').catch(() => ({ imagens: [] }))).imagens : []);
     setCarregando(false);
+    return !!data?.user;
   }, []);
 
   useEffect(() => {
-    concluirLoginSocial().then(atualizarConta);
+    concluirLoginSocial().then(atualizarConta).then(logado => { if (logado) carregarPecas(); });
     window.addEventListener('conta-mudou', atualizarConta);
     const checkout = new URLSearchParams(window.location.search).get('checkout');
     if (checkout) {
@@ -56,7 +64,7 @@ const App: React.FC = () => {
       window.removeEventListener('conta-mudou', atualizarConta);
       window.removeEventListener('popstate', voltar);
     };
-  }, [atualizarConta]);
+  }, [atualizarConta, carregarPecas]);
 
   const navigateTo = useCallback((page: Page) => {
     setCurrentPage(page);
@@ -78,6 +86,7 @@ const App: React.FC = () => {
 
   const entrou = useCallback(async () => {
     await atualizarConta();
+    carregarPecas();
     if (planoPendente) {
       const plano = planoPendente;
       setPlanoPendente(null);
@@ -85,13 +94,14 @@ const App: React.FC = () => {
     } else {
       navigateTo('flatLay');
     }
-  }, [atualizarConta, planoPendente, navigateTo]);
+  }, [atualizarConta, carregarPecas, planoPendente, navigateTo]);
 
   const sair = useCallback(async () => {
     await authClient.signOut();
     setEmail(null);
     setConta(null);
     setImagens([]);
+    setPecas([]);
     navigateTo('home');
   }, [navigateTo]);
 
@@ -105,12 +115,16 @@ const App: React.FC = () => {
 
   const renderPage = () => {
     // Páginas da conta: sem login, mostra o login (ou nada enquanto a sessão carrega).
-    if (['flatLay', 'tryOn', 'login', 'galeria', 'conta'].includes(currentPage) && !email) {
+    if (['flatLay', 'tryOn', 'login', 'galeria', 'conta', 'pecas', 'painel'].includes(currentPage) && !email) {
       return carregando ? null : <Login onEntrou={entrou} cadastroInicial={currentPage === 'flatLay' || currentPage === 'tryOn'} />;
     }
     switch (currentPage) {
       case 'flatLay':
-        return <FlatLayCreator onSaveForTryOn={addSavedFlatLay} />;
+        return <FlatLayCreator onSaveForTryOn={addSavedFlatLay} pecas={pecas} onPecasMudou={carregarPecas} />;
+      case 'pecas':
+        return <Pecas pecas={pecas} onMudou={carregarPecas} onCriarLook={() => navigateTo('flatLay')} />;
+      case 'painel':
+        return <Painel onVerPlanos={verPlanos} />;
       case 'tryOn':
         return <VirtualTryOn
                   savedFlatLays={savedFlatLays}
@@ -150,7 +164,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-800">
-      <Header navigateTo={navigateTo} email={email} conta={conta} onSair={sair} />
+      <Header navigateTo={navigateTo} email={email} conta={conta} onSair={sair} pagina={currentPage} />
       {aviso && (
         <div className="bg-indigo-600 text-white text-center px-4 py-3 flex justify-center items-center gap-4" role="status">
           <span>{aviso}</span>

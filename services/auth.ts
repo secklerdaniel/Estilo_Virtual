@@ -51,4 +51,6 @@ export type Conta = {
 
 export type Imagem = { id: string; tipo: 'flatLay' | 'baseModel' | 'tryOn' | 'pose'; criadaEm: string; url: string; publicada: boolean };
 
+export type Peca = { id: string; nome: string; criadaEm: string; url: string };
+
 export type Loja = { nome: string; slug: string; whatsapp: string | null; provador_ativo: boolean; limite_diario: number };
