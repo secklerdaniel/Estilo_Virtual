@@ -1,6 +1,6 @@
 import React from 'react';
 import { Page } from '../types';
-import { ClockIcon, DollarSignIcon, CheckCircleIcon, QuoteIcon, SparklesIcon } from './icons/Icons';
+import { ClockIcon, DollarSignIcon, CheckCircleIcon, SparklesIcon } from './icons/Icons';
 
 interface HomeProps {
   navigateTo: (page: Page) => void;
@@ -189,33 +189,6 @@ const Home: React.FC<HomeProps> = ({ navigateTo, onAssinar }) => {
           </div>
         </div>
       </section>
-
-       {/* Testimonials Section */}
-      <section className="py-20 md:py-28 bg-indigo-700 text-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold">O que os lojistas estão dizendo</h2>
-            <p className="text-lg text-indigo-200 mt-4">Marcas como a sua já estão transformando a maneira como vendem moda online.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 mt-16 max-w-6xl mx-auto">
-            <TestimonialCard
-              quote="O Estilo Virtual cortou nossos custos de fotografia pela metade e agilizou o lançamento da nova coleção. Incrível!"
-              author="Juliana S."
-              store="Dona Rosa Boutique"
-            />
-            <TestimonialCard
-              quote="Nossas vendas aumentaram 15% depois que implementamos o provador virtual. Os clientes amaram a novidade!"
-              author="Marcos T."
-              store="Urbano Men's Wear"
-            />
-            <TestimonialCard
-              quote="Finalmente uma ferramenta de IA que é fácil de usar e realmente entende de moda. Recomendo de olhos fechados."
-              author="Carla P."
-              store="Estilo Fino"
-            />
-          </div>
-        </div>
-      </section>
       
       {/* Final CTA Section */}
       <section className="py-20 md:py-28">
@@ -235,27 +208,6 @@ const Home: React.FC<HomeProps> = ({ navigateTo, onAssinar }) => {
   );
 };
 
-interface TestimonialCardProps {
-  quote: string;
-  author: string;
-  store: string;
-}
-
-const TestimonialCard: React.FC<TestimonialCardProps> = ({ quote, author, store }) => (
-  <div className="bg-indigo-600 p-8 rounded-lg">
-    <QuoteIcon className="text-indigo-400 w-10 h-10 mb-4" />
-    <p className="text-indigo-100 mb-6 italic">"{quote}"</p>
-    <div className="flex items-center">
-      <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center font-bold text-white mr-4">
-        {author.charAt(0)}
-      </div>
-      <div>
-        <p className="font-bold">{author}</p>
-        <p className="text-sm text-indigo-300">{store}</p>
-      </div>
-    </div>
-  </div>
-);
 
 
 export default Home;
