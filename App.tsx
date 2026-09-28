@@ -12,6 +12,7 @@ import RedefinirSenha from './components/RedefinirSenha';
 import { Termos, Privacidade } from './components/Legal';
 import ContaPagina from './components/Conta';
 import ProvadorPublico from './components/ProvadorPublico';
+import Fitness from './components/Fitness';
 import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
 const App: React.FC = () => {
@@ -122,6 +123,8 @@ const App: React.FC = () => {
         return <ContaPagina conta={conta} imagens={imagens} onMudou={atualizarConta}
                  onVerPlanos={verPlanos}
                  onExcluida={() => { setEmail(null); setConta(null); setImagens([]); setAviso('Sua conta foi excluída.'); navigateTo('home'); }} />;
+      case 'fitness':
+        return <Fitness navigateTo={navigateTo} onVerPlanos={verPlanos} />;
       case 'termos':
         return <Termos />;
       case 'privacidade':
