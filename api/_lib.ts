@@ -96,10 +96,12 @@ export const linkAssinado = (chave: string) =>
 
 export const apagarDoR2 = (chave: string) => r2.send(new DeleteObjectCommand({ Bucket: bucket(), Key: chave }));
 
+export const lerArquivo = async (chave: string) =>
+  Buffer.from(await (await r2.send(new GetObjectCommand({ Bucket: bucket(), Key: chave }))).Body!.transformToByteArray());
+
 /** Base64 de uma imagem guardada, se for do usuário (o provador manda "imagem:<id>" em vez da foto). */
 export async function lerImagem(userId: string, id: string): Promise<string | null> {
   const [l] = await sql`select chave from imagens where id = ${id}::uuid and user_id = ${userId}`.catch(() => []);
   if (!l) return null;
-  const obj = await r2.send(new GetObjectCommand({ Bucket: bucket(), Key: l.chave }));
-  return Buffer.from(await obj.Body!.transformToByteArray()).toString('base64');
+  return (await lerArquivo(l.chave)).toString('base64');
 }

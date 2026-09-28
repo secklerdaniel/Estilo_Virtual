@@ -32,6 +32,14 @@ export async function api<T = any>(path: string, body?: unknown, method?: string
   return json;
 }
 
+/** Baixa um arquivo de /api com o JWT (a galeria usa para montar o zip). */
+export async function baixar(path: string): Promise<Uint8Array> {
+  const { token } = await fetch('/api/auth/token').then(r => (r.ok ? r.json() : {})).catch(() => ({})) as { token?: string };
+  const res = await fetch(`/api/${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!res.ok) throw new Error('Não foi possível baixar uma das imagens.');
+  return new Uint8Array(await res.arrayBuffer());
+}
+
 export type Conta = {
   plano: 'gratis' | 'essencial' | 'profissional' | 'ilimitado';
   status: string;

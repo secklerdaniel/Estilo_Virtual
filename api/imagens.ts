@@ -1,9 +1,18 @@
 // Galeria do usuário: lista as imagens guardadas no R2 e apaga as que ele não quer mais.
-import { apagarDoR2, chaveMarca, erro, getUser, linkAssinado, precisaMarca, sql } from './_lib.js';
+import { apagarDoR2, chaveMarca, erro, getUser, lerArquivo, linkAssinado, precisaMarca, sql } from './_lib.js';
 
 export async function GET(req: Request): Promise<Response> {
   const user = await getUser(req);
   if (!user) return erro(401, 'Não autenticado.');
+
+  // ?arquivo=<id>: devolve o JPEG (para o zip da galeria; o bucket não tem CORS).
+  const arquivo = new URL(req.url).searchParams.get('arquivo');
+  if (arquivo) {
+    const [l] = await sql`select chave, tem_marca from imagens where id = ${arquivo}::uuid and user_id = ${user.id}`.catch(() => []);
+    if (!l) return erro(404, 'Imagem não encontrada.');
+    const chave = l.tem_marca && (await precisaMarca(user.id)) ? chaveMarca(l.chave) : l.chave;
+    return new Response(new Uint8Array(await lerArquivo(chave)), { headers: { 'content-type': 'image/jpeg' } });
+  }
   const linhas = await sql`
     select id, tipo, chave, tem_marca, publicada, created_at from imagens
      where user_id = ${user.id} order by created_at desc limit 200`;
