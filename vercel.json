@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/api/auth/:path*", "destination": "/api/auth?path=:path*" }]
+  "rewrites": [
+    { "source": "/api/auth/:path*", "destination": "/api/auth?path=:path*" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }

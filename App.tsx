@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Page, ClothingItem } from './types';
+import { Page, ClothingItem, ROTAS, paginaDaUrl } from './types';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './components/Home';
@@ -7,10 +7,11 @@ import FlatLayCreator from './components/FlatLayCreator';
 import VirtualTryOn from './components/VirtualTryOn';
 import Login from './components/Login';
 import Galeria from './components/Galeria';
+import RedefinirSenha from './components/RedefinirSenha';
 import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [currentPage, setCurrentPage] = useState<Page>(paginaDaUrl);
   // Imagens da conta, guardadas no R2: aparecem em qualquer aparelho em que o lojista entrar.
   const [imagens, setImagens] = useState<Imagem[]>([]);
   const savedFlatLays: ClothingItem[] = imagens
@@ -44,24 +45,31 @@ const App: React.FC = () => {
       // O webhook do Stripe pode chegar alguns segundos depois do redirect.
       if (checkout === 'sucesso') [3000, 8000].forEach(ms => setTimeout(atualizarConta, ms));
     }
-    return () => window.removeEventListener('conta-mudou', atualizarConta);
+    const voltar = () => setCurrentPage(paginaDaUrl());
+    window.addEventListener('popstate', voltar);
+    return () => {
+      window.removeEventListener('conta-mudou', atualizarConta);
+      window.removeEventListener('popstate', voltar);
+    };
   }, [atualizarConta]);
 
   const navigateTo = useCallback((page: Page) => {
     setCurrentPage(page);
+    if (page !== 'loja' && window.location.pathname !== ROTAS[page]) window.history.pushState(null, '', ROTAS[page]);
+    window.scrollTo(0, 0);
   }, []);
 
   const assinar = useCallback(async (plano: string) => {
     if (!email) {
       setPlanoPendente(plano);
-      return setCurrentPage('login');
+      return navigateTo('login');
     }
     try {
       window.location.href = (await api<{ url: string }>('checkout', { plano })).url;
     } catch (err) {
       setAviso(err instanceof Error ? err.message : 'Não foi possível abrir o pagamento.');
     }
-  }, [email]);
+  }, [email, navigateTo]);
 
   const entrou = useCallback(async () => {
     await atualizarConta();
@@ -70,25 +78,25 @@ const App: React.FC = () => {
       setPlanoPendente(null);
       window.location.href = (await api<{ url: string }>('checkout', { plano })).url;
     } else {
-      setCurrentPage('flatLay');
+      navigateTo('flatLay');
     }
-  }, [atualizarConta, planoPendente]);
+  }, [atualizarConta, planoPendente, navigateTo]);
 
   const sair = useCallback(async () => {
     await authClient.signOut();
     setEmail(null);
     setConta(null);
     setImagens([]);
-    setCurrentPage('home');
-  }, []);
+    navigateTo('home');
+  }, [navigateTo]);
 
   // O flat lay já foi guardado ao ser gerado; aqui só recarrega a lista do provador.
   const addSavedFlatLay = useCallback(() => { atualizarConta(); }, [atualizarConta]);
 
   const renderPage = () => {
-    // As ferramentas gastam créditos: sem login, mostra o cadastro.
-    if (!carregando && !email && (currentPage === 'flatLay' || currentPage === 'tryOn' || currentPage === 'login')) {
-      return <Login onEntrou={entrou} cadastroInicial={currentPage !== 'login'} />;
+    // Páginas da conta: sem login, mostra o login (ou nada enquanto a sessão carrega).
+    if (['flatLay', 'tryOn', 'login', 'galeria', 'conta'].includes(currentPage) && !email) {
+      return carregando ? null : <Login onEntrou={entrou} cadastroInicial={currentPage === 'flatLay' || currentPage === 'tryOn'} />;
     }
     switch (currentPage) {
       case 'flatLay':
@@ -99,8 +107,10 @@ const App: React.FC = () => {
                   baseModel={baseModelImage}
                   setBaseModel={setBaseModelImage}
                 />;
+      case 'redefinir':
+        return <RedefinirSenha onPronto={() => { setAviso('Senha nova salva! Entre com ela.'); navigateTo('login'); }} />;
       case 'galeria':
-        return email ? <Galeria imagens={imagens} onMudou={atualizarConta} /> : <Login onEntrou={entrou} cadastroInicial={false} />;
+        return <Galeria imagens={imagens} onMudou={atualizarConta} />;
       case 'home':
       default:
         return <Home navigateTo={navigateTo} onAssinar={assinar} />;
