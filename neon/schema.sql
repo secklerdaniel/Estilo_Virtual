@@ -54,3 +54,16 @@ create index if not exists imagens_user_created_idx on imagens (user_id, created
 
 -- Marca d'água (Grátis/Essencial): R2 guarda também <id>-marca.jpg; a limpa alimenta os próximos passos.
 alter table imagens add column if not exists tem_marca boolean not null default false;
+
+-- Loja do lojista e o provador público em /p/<slug> (cada prova gasta crédito do dono).
+create table if not exists lojas (
+  user_id        text primary key,
+  nome           text not null check (length(nome) between 1 and 80),
+  slug           text not null unique check (slug ~ '^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$'),
+  whatsapp       text check (whatsapp is null or whatsapp ~ '^[0-9]{10,13}$'),
+  provador_ativo boolean not null default false,
+  limite_diario  integer not null default 20 check (limite_diario between 1 and 500),
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
+);
+alter table imagens add column if not exists publicada boolean not null default false;

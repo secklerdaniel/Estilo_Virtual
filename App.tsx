@@ -10,6 +10,7 @@ import Galeria from './components/Galeria';
 import { Gerada } from './services/imageService';
 import RedefinirSenha from './components/RedefinirSenha';
 import { Termos, Privacidade } from './components/Legal';
+import ContaPagina from './components/Conta';
 import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
 const App: React.FC = () => {
@@ -92,6 +93,11 @@ const App: React.FC = () => {
     navigateTo('home');
   }, [navigateTo]);
 
+  const verPlanos = useCallback(() => {
+    navigateTo('home');
+    setTimeout(() => document.getElementById('planos')?.scrollIntoView({ behavior: 'smooth' }), 50);
+  }, [navigateTo]);
+
   // O flat lay já foi guardado ao ser gerado; aqui só recarrega a lista do provador.
   const addSavedFlatLay = useCallback(() => { atualizarConta(); }, [atualizarConta]);
 
@@ -111,6 +117,10 @@ const App: React.FC = () => {
                 />;
       case 'redefinir':
         return <RedefinirSenha onPronto={() => { setAviso('Senha nova salva! Entre com ela.'); navigateTo('login'); }} />;
+      case 'conta':
+        return <ContaPagina conta={conta} imagens={imagens} onMudou={atualizarConta}
+                 onVerPlanos={verPlanos}
+                 onExcluida={() => { setEmail(null); setConta(null); setImagens([]); setAviso('Sua conta foi excluída.'); navigateTo('home'); }} />;
       case 'termos':
         return <Termos />;
       case 'privacidade':
@@ -125,7 +135,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-800">
-      <Header navigateTo={navigateTo} email={email} conta={conta} onSair={sair} onAssinar={assinar} />
+      <Header navigateTo={navigateTo} email={email} conta={conta} onSair={sair} />
       {aviso && (
         <div className="bg-indigo-600 text-white text-center px-4 py-3 flex justify-center items-center gap-4" role="status">
           <span>{aviso}</span>
