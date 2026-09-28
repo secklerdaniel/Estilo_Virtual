@@ -2,6 +2,8 @@
 import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { neon } from '@neondatabase/serverless';
+import sharp from 'sharp';
+import { MARCA_PNG } from './_marca.js';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import Stripe from 'stripe';
 
@@ -50,13 +52,43 @@ const r2 = new S3Client({
 });
 const bucket = () => process.env.R2_BUCKET_NAME || 'estilo-virtual';
 
-/** Guarda a imagem gerada no R2 e registra no Neon. Retorna o id. */
-export async function salvarImagem(userId: string, tipo: string, base64: string): Promise<string> {
+const put = (Key: string, Body: Buffer) =>
+  r2.send(new PutObjectCommand({ Bucket: bucket(), Key, Body, ContentType: 'image/jpeg' }));
+
+/** Chave da versão com marca d'água: <id>-marca.jpg ao lado da limpa. */
+export const chaveMarca = (chave: string) => chave.replace(/\.jpg$/, '-marca.jpg');
+
+/**
+ * Guarda a imagem gerada no R2 e registra no Neon. A versão limpa fica sempre guardada
+ * (é ela que alimenta os próximos passos); com `marcada`, guarda também a versão com marca.
+ */
+export async function salvarImagem(userId: string, tipo: string, base64: string, marcada?: string): Promise<string> {
   const id = crypto.randomUUID();
   const chave = `usuarios/${userId}/${id}.jpg`;
-  await r2.send(new PutObjectCommand({ Bucket: bucket(), Key: chave, Body: Buffer.from(base64, 'base64'), ContentType: 'image/jpeg' }));
-  await sql`insert into imagens (id, user_id, tipo, chave) values (${id}, ${userId}, ${tipo}, ${chave})`;
+  await put(chave, Buffer.from(base64, 'base64'));
+  if (marcada) await put(chaveMarca(chave), Buffer.from(marcada, 'base64'));
+  await sql`insert into imagens (id, user_id, tipo, chave, tem_marca) values (${id}, ${userId}, ${tipo}, ${chave}, ${!!marcada})`;
   return id;
+}
+
+/** Grátis e Essencial saem com marca d'água; Profissional e Ilimitado vêm limpos (promessa da landing). */
+export async function precisaMarca(userId: string): Promise<boolean> {
+  const [a] = await sql`select plano, status from assinaturas where user_id = ${userId}`;
+  return !a || a.status !== 'ativa' || a.plano === 'gratis' || a.plano === 'essencial';
+}
+
+/** Carimba "EstiloVirtual" no canto inferior direito, com ~35% da largura da imagem. */
+export async function marcar(base64: string): Promise<string> {
+  const img = sharp(Buffer.from(base64, 'base64'));
+  const { width = 1024 } = await img.metadata();
+  const marca = await sharp(MARCA_PNG).resize({ width: Math.round(width * 0.35) }).toBuffer();
+  const margem = Math.round(width * 0.03);
+  const { height: hm = 0 } = await sharp(marca).metadata();
+  const { height = 1024 } = await img.metadata();
+  return (await img
+    .composite([{ input: marca, left: width - Math.round(width * 0.35) - margem, top: height - hm - margem }])
+    .jpeg({ quality: 90 })
+    .toBuffer()).toString('base64');
 }
 
 export const linkAssinado = (chave: string) =>

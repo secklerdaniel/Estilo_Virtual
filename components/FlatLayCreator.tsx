@@ -57,7 +57,7 @@ const FlatLayCreator: React.FC<FlatLayCreatorProps> = ({ onSaveForTryOn }) => {
     setGeneratedImage(null);
 
     try {
-      const resultBase64 = await generateFlatLay(images.map(img => ({ base64: img.base64 })));
+      const resultBase64 = (await generateFlatLay(images.map(img => ({ base64: img.base64 })))).image;
       setGeneratedImage(resultBase64);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido.");
@@ -158,14 +158,14 @@ const FlatLayCreator: React.FC<FlatLayCreatorProps> = ({ onSaveForTryOn }) => {
             {generatedImage && (
               <>
                 <img 
-                  src={`data:image/png;base64,${generatedImage}`} 
+                  src={`data:image/jpeg;base64,${generatedImage}`} 
                   alt="Flat lay gerado" 
                   className="w-full h-full object-cover rounded-lg"
                 />
                 <div className="absolute top-4 right-4 flex flex-col space-y-2">
                   <a
-                    href={`data:image/png;base64,${generatedImage}`}
-                    download="estilo-virtual-flat-lay.png"
+                    href={`data:image/jpeg;base64,${generatedImage}`}
+                    download="estilo-virtual-flat-lay.jpg"
                     className="bg-white text-gray-800 p-3 rounded-full shadow-lg hover:bg-gray-200 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
                     aria-label="Baixar imagem do flat lay"
                     title="Baixar Imagem"

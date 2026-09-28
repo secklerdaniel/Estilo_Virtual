@@ -1,13 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ClothingItem } from '../types';
-import { generateTryOn, generateBaseModel, changePose } from '../services/imageService';
+import { generateTryOn, generateBaseModel, changePose, Gerada } from '../services/imageService';
 import { reduzirFoto } from '../services/foto';
 import { CameraIcon, UploadIcon, SparklesIcon, MagicWandIcon, DownloadIcon } from './icons/Icons';
 
 interface VirtualTryOnProps {
   savedFlatLays?: ClothingItem[];
-  baseModel: string | null;
-  setBaseModel: (model: string | null) => void;
+  baseModel: Gerada | null;
+  setBaseModel: (model: Gerada | null) => void;
 }
 
 const POSE_OPTIONS: { [key: string]: string } = {
@@ -20,7 +20,7 @@ const POSE_OPTIONS: { [key: string]: string } = {
 const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseModel, setBaseModel }) => {
   const [originalUserImage, setOriginalUserImage] = useState<string | null>(null);
   const [selectedClothing, setSelectedClothing] = useState<ClothingItem | null>(null);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [generatedImage, setGeneratedImage] = useState<Gerada | null>(null);
   const [isCreatingModel, setIsCreatingModel] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isChangingPose, setIsChangingPose] = useState<boolean>(false);
@@ -103,8 +103,7 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
     setIsCreatingModel(true);
     setError(null);
     try {
-      const resultBase64 = await generateBaseModel(originalUserImage);
-      setBaseModel(resultBase64);
+      setBaseModel(await generateBaseModel(originalUserImage));
       setOriginalUserImage(null); // Clear original photo now that we have the model
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido.");
@@ -132,8 +131,7 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
       const clothingBase64 = selectedClothing.imageUrl.startsWith('data:')
         ? await getBase64FromImageUrl(selectedClothing.imageUrl)
         : `imagem:${selectedClothing.id}`;
-      const resultBase64 = await generateTryOn(baseModel, clothingBase64);
-      setGeneratedImage(resultBase64);
+      setGeneratedImage(await generateTryOn(baseModel, clothingBase64));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido.");
     } finally {
@@ -151,8 +149,7 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
     setError(null);
     
     try {
-      const resultBase64 = await changePose(generatedImage, poseInstruction);
-      setGeneratedImage(resultBase64);
+      setGeneratedImage(await changePose(generatedImage, poseInstruction));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ocorreu um erro desconhecido ao mudar a pose.");
     } finally {
@@ -166,7 +163,7 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
     };
   }, []);
 
-  const userImageToShow = baseModel || originalUserImage;
+  const userImageToShow = baseModel?.image || originalUserImage;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -275,10 +272,10 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
                     </div>
                 ) : generatedImage ? (
                     <>
-                      <img src={`data:image/png;base64,${generatedImage}`} alt="Resultado do Provador" className="w-full h-full object-contain"/>
+                      <img src={`data:image/jpeg;base64,${generatedImage.image}`} alt="Resultado do Provador" className="w-full h-full object-contain"/>
                       <a
-                        href={`data:image/png;base64,${generatedImage}`}
-                        download="estilo-virtual-look.png"
+                        href={`data:image/jpeg;base64,${generatedImage.image}`}
+                        download="estilo-virtual-look.jpg"
                         className="absolute top-4 right-4 bg-white text-gray-800 p-3 rounded-full shadow-lg hover:bg-gray-200 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50"
                         aria-label="Baixar imagem do look"
                         title="Baixar Look"

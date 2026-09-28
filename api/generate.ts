@@ -1,7 +1,7 @@
 // Função de servidor (Vercel /api/generate; no dev, servida pelo vite.config.ts).
 // A chave da OpenAI e os prompts ficam aqui: o navegador só manda a ação e as fotos.
 // Exige login e gasta 1 crédito por imagem (devolvido se a IA falhar).
-import { erro, getUser, lerImagem, salvarImagem, sql } from './_lib.js';
+import { erro, getUser, lerImagem, marcar, precisaMarca, salvarImagem, sql } from './_lib.js';
 
 const MODEL = 'gpt-image-2.5-sunburst';
 
@@ -94,7 +94,10 @@ export async function POST(req: Request): Promise<Response> {
       ? 'A IA recusou esta imagem pelas regras de segurança. Tente outra foto ou outra peça. Seu crédito foi devolvido.'
       : 'A IA não conseguiu gerar a imagem. Tente novamente. Seu crédito foi devolvido.');
   }
+  // O navegador recebe a versão com marca (planos Grátis/Essencial); a limpa fica no R2
+  // para alimentar os próximos passos sem carregar a marca junto.
+  const marcada = (await precisaMarca(user.id)) ? await marcar(image).catch(() => undefined) : undefined;
   // Falha ao guardar não pode custar a imagem que o lojista já pagou: devolve mesmo assim.
-  const id = await salvarImagem(user.id, action, image).catch(e => console.error('R2:', e.message));
-  return Response.json({ image, id, restantes: credito.restantes });
+  const id = await salvarImagem(user.id, action, image, marcada).catch(e => console.error('R2:', e.message));
+  return Response.json({ image: marcada ?? image, id, restantes: credito.restantes });
 }

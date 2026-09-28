@@ -7,6 +7,7 @@ import FlatLayCreator from './components/FlatLayCreator';
 import VirtualTryOn from './components/VirtualTryOn';
 import Login from './components/Login';
 import Galeria from './components/Galeria';
+import { Gerada } from './services/imageService';
 import RedefinirSenha from './components/RedefinirSenha';
 import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
@@ -17,7 +18,7 @@ const App: React.FC = () => {
   const savedFlatLays: ClothingItem[] = imagens
     .filter(i => i.tipo === 'flatLay')
     .map((i, n, lista) => ({ id: i.id, name: `Flat Lay #${lista.length - n}`, imageUrl: i.url }));
-  const [baseModelImage, setBaseModelImage] = useState<string | null>(null);
+  const [baseModelImage, setBaseModelImage] = useState<Gerada | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [conta, setConta] = useState<Conta | null>(null);
   const [carregando, setCarregando] = useState(true);

@@ -51,3 +51,6 @@ create table if not exists imagens (
   created_at timestamptz not null default now()
 );
 create index if not exists imagens_user_created_idx on imagens (user_id, created_at desc);
+
+-- Marca d'água (Grátis/Essencial): R2 guarda também <id>-marca.jpg; a limpa alimenta os próximos passos.
+alter table imagens add column if not exists tem_marca boolean not null default false;
