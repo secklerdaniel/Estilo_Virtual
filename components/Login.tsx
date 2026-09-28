@@ -18,15 +18,23 @@ const Login: React.FC<LoginProps> = ({ onEntrou, cadastroInicial }) => {
     e.preventDefault();
     setEnviando(true);
     setErro(null);
-    const { error } = cadastro
-      ? await authClient.signUp.email({ name: nome || email.split('@')[0], email, password: senha })
-      : await authClient.signIn.email({ email, password: senha });
-    setEnviando(false);
-    if (error) return setErro(traduz(error.message));
-    onEntrou();
+    try {
+      // O cliente do Neon às vezes devolve { error } e às vezes lança (ex.: 401): trata os dois.
+      const { error } = cadastro
+        ? await authClient.signUp.email({ name: nome || email.split('@')[0], email, password: senha })
+        : await authClient.signIn.email({ email, password: senha });
+      if (error) return setErro(traduz(error.message));
+      onEntrou();
+    } catch (err) {
+      setErro(traduz((err as Error).message));
+    } finally {
+      setEnviando(false);
+    }
   };
 
-  const google = () => authClient.signIn.social({ provider: 'google', callbackURL: window.location.href });
+  const google = () =>
+    authClient.signIn.social({ provider: 'google', callbackURL: window.location.href })
+      .catch(err => setErro(traduz((err as Error).message)));
 
   const campo = 'w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500';
 
