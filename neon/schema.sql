@@ -67,3 +67,14 @@ create table if not exists lojas (
   updated_at     timestamptz not null default now()
 );
 alter table imagens add column if not exists publicada boolean not null default false;
+
+-- Gerações do provador público (limite por loja e por visitante; IP guardado só como hash).
+create table if not exists provas_publicas (
+  id           bigserial primary key,
+  loja_user_id text not null,
+  ip_hash      text not null,
+  acao         text not null,
+  created_at   timestamptz not null default now()
+);
+create index if not exists provas_publicas_loja_idx on provas_publicas (loja_user_id, created_at desc);
+create index if not exists provas_publicas_ip_idx on provas_publicas (ip_hash, created_at desc);

@@ -11,6 +11,7 @@ import { Gerada } from './services/imageService';
 import RedefinirSenha from './components/RedefinirSenha';
 import { Termos, Privacidade } from './components/Legal';
 import ContaPagina from './components/Conta';
+import ProvadorPublico from './components/ProvadorPublico';
 import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
 const App: React.FC = () => {
@@ -132,6 +133,17 @@ const App: React.FC = () => {
         return <Home navigateTo={navigateTo} onAssinar={assinar} />;
     }
   };
+
+  // Provador público da loja: página da cliente final, sem o menu do lojista.
+  if (currentPage === 'loja')
+    return (
+      <div className="flex flex-col min-h-screen font-sans text-gray-800 bg-gray-50">
+        <main className="flex-grow container mx-auto px-4 py-8"><ProvadorPublico /></main>
+        <footer className="text-center text-sm text-gray-400 py-6">
+          Provador por <a href="/" className="text-indigo-600 hover:underline">EstiloVirtual</a>
+        </footer>
+      </div>
+    );
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-800">
