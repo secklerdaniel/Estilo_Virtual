@@ -9,6 +9,7 @@ import Login from './components/Login';
 import Galeria from './components/Galeria';
 import { Gerada } from './services/imageService';
 import RedefinirSenha from './components/RedefinirSenha';
+import { Termos, Privacidade } from './components/Legal';
 import { api, authClient, concluirLoginSocial, Conta, Imagem } from './services/auth';
 
 const App: React.FC = () => {
@@ -110,6 +111,10 @@ const App: React.FC = () => {
                 />;
       case 'redefinir':
         return <RedefinirSenha onPronto={() => { setAviso('Senha nova salva! Entre com ela.'); navigateTo('login'); }} />;
+      case 'termos':
+        return <Termos />;
+      case 'privacidade':
+        return <Privacidade />;
       case 'galeria':
         return <Galeria imagens={imagens} onMudou={atualizarConta} />;
       case 'home':

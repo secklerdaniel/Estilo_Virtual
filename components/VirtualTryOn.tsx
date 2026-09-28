@@ -26,6 +26,8 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
   const [isChangingPose, setIsChangingPose] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
+  // LGPD: a pessoa confirma que a foto é dela (ou autorizada) e maior de idade antes de enviar.
+  const [consentiu, setConsentiu] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -204,13 +206,20 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
                     </div>
                 )}
             </div>
-            <div className="space-y-2">
+            <label className="flex items-start gap-2 text-sm text-gray-600 mb-3">
+              <input type="checkbox" checked={consentiu} onChange={e => setConsentiu(e.target.checked)} className="mt-1" />
+              <span>
+                Confirmo que a foto é minha ou que a pessoa fotografada autorizou o uso, e que ela é maior de idade.{' '}
+                <a href="/privacidade" target="_blank" className="text-indigo-600 hover:underline">Privacidade</a>
+              </span>
+            </label>
+            <fieldset disabled={!consentiu} className="space-y-2 disabled:opacity-50">
                 {isCameraOn ? (
                     <button onClick={capturePhoto} className="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition-colors">Tirar Foto</button>
                 ) : (
                     <button onClick={startCamera} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"><CameraIcon className="w-5 h-5 mr-2"/>{baseModel ? 'Usar Outra Foto (Câmera)' : 'Ligar Câmera'}</button>
                 )}
-                <input type="file" id="upload-photo" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                <input type="file" id="upload-photo" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={!consentiu} />
                 <label htmlFor="upload-photo" className="w-full bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors cursor-pointer flex items-center justify-center"><UploadIcon className="w-5 h-5 mr-2"/>{baseModel ? 'Usar Outra Foto (Arquivo)' : 'Enviar Foto'}</label>
                 
                 {originalUserImage && !baseModel && (
@@ -235,7 +244,7 @@ const VirtualTryOn: React.FC<VirtualTryOnProps> = ({ savedFlatLays = [], baseMod
                     )}
                   </button>
                 )}
-            </div>
+            </fieldset>
           </div>
 
           {/* Coluna 2: Seleção de Roupas */}
