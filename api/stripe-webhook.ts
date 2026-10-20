@@ -29,7 +29,13 @@ export async function POST(req: Request): Promise<Response> {
 
   const item = sub.items.data[0];
   const plano = item.price.metadata.plano as Plano;
-  if (!(plano in PLANOS)) return erro(400, `Price sem plano conhecido: ${item.price.id}`);
+  // O endpoint recebe as assinaturas de TODA a conta do Stripe, inclusive de
+  // outros apps da casa. Price que não é daqui não é erro: 200 para o Stripe
+  // parar de reenviar (400 fazia o evento ficar em retentativa para sempre).
+  if (!(plano in PLANOS)) {
+    console.error(`Assinatura ${sub.id}: price ${item.price.id} sem plano conhecido — ignorada.`);
+    return Response.json({ ignorado: 'price de outro app' });
+  }
   const status = STATUS[sub.status] ?? 'cancelada';
   const periodoFim = new Date(item.current_period_end * 1000).toISOString();
   const customer = typeof sub.customer === 'string' ? sub.customer : sub.customer.id;
