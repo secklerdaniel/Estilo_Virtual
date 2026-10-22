@@ -81,7 +81,7 @@ const Login: React.FC<LoginProps> = ({ onEntrou, cadastroInicial }) => {
     });
 
   const google = () =>
-    authClient.signIn.social({ provider: 'google', callbackURL: window.location.href })
+    authClient.signIn.social({ provider: 'google', callbackURL: `${window.location.origin}/painel` })
       .catch(err => setErro(traduz((err as Error).message)));
 
   const campo = 'w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500';
